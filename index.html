@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link
+      rel="preconnect"
+      href="https://fonts.googleapis.com"
+    />
+    <link
+      rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <style>
+      * {
+        pointer-events: none;
+        user-select: none; /* also prevents text selection */
+      }
+
+      html,
+      body {
+        background-color: black;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        color: rgba(255, 255, 255, 0.829);
+
+        align-items: center;
+        justify-content: center;
+
+        font-family: "Press Start 2P", system-ui;
+        font-weight: 400;
+        font-size: xx-large;
+        font-style: normal;
+
+        overflow: hidden;
+      }
+
+      #group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 2em;
+        z-index: 100;
+      }
+
+      .time-sections {
+        display: flex;
+        flex-direction: row;
+        gap: 1em;
+      }
+
+      .vars {
+        color: #407c97;
+      }
+
+      .backdrop-text {
+        position: absolute;
+        /* font-size: xx-large; */
+        left: 0;
+        top: 0;
+        white-space: nowrap;
+        opacity: 0.3;
+      }
+
+      .sub-section {
+        display: flex;
+        gap: 1em;
+      }
+
+      @media (max-width: 1000px) {
+        #group {
+          font-size: 0.7rem;
+        }
+        .backdrop-text {
+          font-size: 0.5rem;
+        }
+        .time-section-extra {
+          flex-direction: column;
+        }
+      }
+    </style>
+
+    <title>Senior Year Timer</title>
+  </head>
+  <body>
+    <div
+      class="backdrop-text"
+      id="movingText"
+    >
+      Graduation Timer
+    </div>
+
+    <div id="group">
+      <section class="time-sections">
+        <div
+          id="weeks"
+          class="vars"
+        ></div>
+        <div>WEEKS LEFT</div>
+      </section>
+      <section class="time-sections">
+        <div
+          id="days"
+          class="vars"
+        ></div>
+        <div>DAYS LEFT</div>
+      </section>
+      <section class="time-sections time-section-extra">
+        <section class="sub-section">
+          <div
+            id="hours"
+            class="vars"
+          ></div>
+          <div>HOURS</div>
+        </section>
+        <section class="sub-section">
+          <div
+            id="minutes"
+            class="vars"
+          ></div>
+          <div>MINUTES</div>
+        </section>
+        <section class="sub-section">
+          <div
+            id="seconds"
+            class="vars"
+          ></div>
+          <div>SECONDS</div>
+        </section>
+      </section>
+    </div>
+
+    <script>
+      const DAY_TO = new Date("2026-05-30T00:00:00-04:00");
+
+      const weeks_div = document.getElementById("weeks");
+      const days_div = document.getElementById("days");
+      const hours_div = document.getElementById("hours");
+      const minutes_div = document.getElementById("minutes");
+      const seconds_div = document.getElementById("seconds");
+      const text = document.getElementById("movingText");
+
+      const calc_days = (date) => {
+        const now = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+        );
+        const diffTime = date - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays;
+      };
+      const calc_time = (date) => {
+        const now = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "America/New_York" })
+        );
+        const diffTime = date - now;
+
+        const totalSeconds = Math.floor(diffTime / 1000);
+        const hours = Math.floor(totalSeconds / 3600); // total hours
+        const minutes = Math.floor((totalSeconds % 3600) / 60); // 0–59
+        const seconds = totalSeconds % 60; // 0–59
+
+        return { hours: hours, minutes: minutes, seconds: seconds };
+      };
+
+      function update_weeks_div() {
+        const weeks_left = Math.floor(calc_days(DAY_TO) / 7);
+
+        weeks_div.innerText = weeks_left;
+      }
+
+      function update_days_div() {
+        const daysLeft = calc_days(DAY_TO);
+
+        days_div.innerText = daysLeft;
+      }
+      function update_timer_div() {
+        const time_data = calc_time(DAY_TO);
+
+        hours_div.innerText = time_data.hours;
+        minutes_div.innerText = time_data.minutes;
+        seconds_div.innerText = time_data.seconds;
+      }
+
+      update_weeks_div();
+      update_days_div();
+      update_timer_div();
+
+      setInterval(() => {
+        update_weeks_div();
+        update_days_div();
+        update_timer_div();
+      }, 1000);
+
+      let x = Math.random() * (window.innerWidth - text.offsetWidth);
+      let y = Math.random() * (window.innerHeight - text.offsetHeight);
+      // Randomize initial direction (-2 or +2)
+      let dx = (Math.random() < 0.5 ? -1 : 1) * 2;
+      let dy = (Math.random() < 0.5 ? -1 : 1) * 2;
+
+      function animate() {
+        const width = window.innerWidth - text.offsetWidth;
+        const height = window.innerHeight - text.offsetHeight;
+
+        // Move position
+        x += dx;
+        y += dy;
+
+        // Bounce off edges
+        if (x <= 0 || x >= width) dx = -dx;
+        if (y <= 0 || y >= height) dy = -dy;
+
+        // Apply new position
+        text.style.left = `${x}px`;
+        text.style.top = `${y}px`;
+
+        requestAnimationFrame(animate); // smooth 60fps loop
+      }
+
+      animate();
+    </script>
+  </body>
+</html>
